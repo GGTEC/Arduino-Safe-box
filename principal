@@ -3,6 +3,8 @@
 #include <Wire.h>
 #include <LiquidCrystal.h>        
 #include <Keypad.h>
+#include "EEPROMAnything.h"
+#include <EEPROM.h>
 
 //Inicialização do Display LiquidCrystal 
 //lcd(<RS>,<E>,<D4>,<D5>,<D6>,< D7>)
@@ -33,6 +35,11 @@ byte colPins[COLS] = {6, 7, 8};          //Definição de pinos das colunas
 //Cria o teclado
 Keypad keypad = Keypad(makeKeymap(keys), rowPins, colPins, ROWS, COLS );
 //Programa inici
+struct config_t{
+  int writed;
+  int moeda;
+} 
+configuration;
 
 String stringOne = "";
 void setup(){
@@ -43,6 +50,7 @@ void setup(){
   pinMode(redPin, OUTPUT);
   pinMode(greenPin, OUTPUT);
   key_init();                                         //Inicializa o sistema
+  getValues();
 }
 
 
@@ -53,6 +61,7 @@ void loop(){
   if (key != NO_KEY){
       if (key == '+') {                     //condição para adicionar o valor de 1 em 1 real
       moeda++;
+      saveValues();
       lcd.clear();
       lcd.setCursor(5,0);
       lcd.print("R$");
@@ -165,6 +174,12 @@ void locked(){
   lcd.clear();
   lcd.setCursor(4,0);
   lcd.print("Trancado");
+  delay(1000);
+  lcd.clear();
+  lcd.setCursor(0,0);
+  lcd.print("ISSO FICA FELIZ");
+  lcd.setCursor(2,1);
+  lcd.print("EM SER UTIL!");
   digitalWrite(redPin, HIGH);                           //Acende LED Vermelho
   digitalWrite(greenPin, LOW); 
   motor.write(0);                                       //Aplica a posição do servo para trancar o sistema  
@@ -173,7 +188,7 @@ void locked(){
   delay(duration);
   noTone(audioPin);
   }
-  delay(200);
+  delay(500);
   key_init();                                           //retorna para o ponto incial do sistema
   
 }
@@ -210,13 +225,19 @@ void limpa(){
     tone(audioPin, 380, 100);                
           delay(duration);                  
           noTone(audioPin);
-    lcd.clear();
+      lcd.clear();
       lcd.setCursor(1,0);
       lcd.print("O VALOR TOTAL");
       lcd.setCursor(1,1);
       lcd.print("CONTINUA=");
-       lcd.setCursor(12,1);
+      lcd.setCursor(12,1);
       lcd.print(moeda);
+      delay(1000);
+      lcd.clear();
+      lcd.setCursor(0,0);
+      lcd.print("ISSO FICA FELIZ");
+      lcd.setCursor(2,1);
+      lcd.print("EM SER UTIL!");
       delay(2000);        
     key_init();                            //se a opção for 2(não) volta para subrotina para inserir a senha
     break;
@@ -225,11 +246,19 @@ void limpa(){
   }
 //Subrotina para zerar a variavel moeda
 void zerado(){
+      EEPROM.write(0, 0);
       lcd.clear();
       lcd.setCursor(1,0);
       lcd.print("O VALOR TOTAL");
       lcd.setCursor(3,1);
       lcd.print("FOI ZERADO");
+      delay(800);
+      lcd.clear();
+      lcd.setCursor(0,0);
+      lcd.print("ISSO FICA FELIZ");
+      lcd.setCursor(2,1);
+      lcd.print("EM SER UTIL!");
+      lcd.clear();
       moeda = 0;
       delay(2000);
       key_init();       
