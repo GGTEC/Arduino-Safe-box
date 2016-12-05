@@ -12,6 +12,7 @@ LiquidCrystal lcd(A0, A1, A2, A3, A4, A5);
 Servo motor;
 int REAIS = REAIS;
 int moeda = 0; 
+int moeda2 = 0;
 int key = 0;
 int count = 0; //Contador de uso geral
 char pass [6] = {'2', '1', '0', '1', '1', '6'};    //Senha
@@ -42,6 +43,7 @@ struct config_t{
 configuration;
 
 String stringOne = "";
+String soma = "";
 void setup(){
   lcd.begin(16, 2);
   Serial.begin(9600);                             
@@ -59,64 +61,20 @@ void setup(){
 void loop(){
  char key = keypad.getKey();
   if (key != NO_KEY){
-      if (key == '+') {                     //condição para adicionar o valor de 1 em 1 real
-      moeda++;
-      saveValues();
-      lcd.clear();
-      lcd.setCursor(5,0);
-      lcd.print("R$");
-      lcd.print(moeda);
-      lcd.print(",00");
-       tone(audioPin, 980);
-       delay(200);                           
-       noTone(audioPin);
-     }  
+     if (key == '+') {                                //Se a tecla é '#'
+     adicionar();
+     }
      if (key == '9'){                    //se a tecla for 9 inicia a função limpa()
-      tone(audioPin, 280);
-          delay(1000);                         
-          noTone(audioPin);
-      limpa();
+     limpa();
      }
      if (key == '0'){                     //se o numero digitado for 0 antes de inserir a senha mostra o valor total por aprox 3 segundos
-      lcd.clear();
-      lcd.setCursor(1,0);
-      lcd.print("TOTAL=");
-      lcd.print("R$");
-      lcd.print(moeda);
-      lcd.print(",00");
-      delay(3000);
-      key_init();
+     exibir();
      }
-    if (key == '#') {                                //Se a tecla é '#'
-      code_entry_init();                             //Então espera que seja inserida uma senha
-      int entrada = 0;                               //define a variavel entrada como padrão 0
-      while (count < 6 ){                            //Conta 6 entradas/teclas
-        char key = keypad.getKey();                  //Obtém tecla pressionada
-        
-        if (key != NO_KEY){
-         
-          stringOne += key;
-          lcd.setCursor(5, 1);
-          lcd.print(stringOne);                      //Se foi pressionada uma tecla:
-          entrada += 1;                              //Faz entrada = entrada + 1
-          tone(audioPin, 580, 100);                  //Para cada dígito emite um som de indicação
-          delay(duration);                           //Duração do som
-          noTone(audioPin);                          //Para de emitir som
-          if (key == pass[count])count += 1;         //Se a tecla pressionada corresponde ao dígito 
-                                                     //da senha correspondente, soma 1 no contador
-          if ( count == 6 ) unlocked();              //Se contador chegou a 4 e com dígitos corretos,  
-                                                     //desbloqueia siatema
-          if ((key == '#') || (entrada == 6)){        //Se foi pressionada a tecla "#' ou foram feitas
-                                                      //6 entradas,
-             key_init();                              //Inicializa o sistema
-            break;                                    //Para o sistema e espera por uma tecla
-          }
-        }
-      }
-    }
+     if (key == '#') {                                //Se a tecla é '#'
+     senha();
+     }
 }
 }
-
 //Inicializar o Sistema 
 void key_init (){
   lcd.clear();                                       //Limpa o LCD
@@ -147,7 +105,17 @@ void code_entry_init(){
   digitalWrite(greenPin, LOW);                        //Apaga LED Verde
 }
 
-
+void entrada_da_soma(){
+    char Key = keypad.getKey();
+  lcd.clear();                                        //Limpa LCD
+  lcd.print("VALOR PARA SOMAR");                        //Emite mensagem
+  count = 0;                                          //Variável count é zero na entrada de senha
+  tone(audioPin, 300, 100);                           //Emite som e acende LEDs
+  delay(duration);
+  noTone(audioPin);
+  digitalWrite(redPin, HIGH);                         //Acende LED Vermelho
+  digitalWrite(greenPin, LOW);                        //Apaga LED Verde
+}
 //Subrotina para Acesso Liberado 
 void unlocked(){
   lcd.clear();                                         //Limpa LCD
@@ -195,7 +163,9 @@ void locked(){
 //Subrotina para zerar o valor em reais em dinheiro do sistema
 void limpa(){
   char key = keypad.getKey();
-  
+  tone(audioPin, 280);
+  delay(1000);                         
+  noTone(audioPin);
   lcd.clear();
   lcd.setCursor(1,0);
   lcd.print("TOTAL=");
@@ -262,4 +232,83 @@ void zerado(){
       moeda = 0;
       delay(2000);
       key_init();       
+}
+void exibir(){
+  lcd.clear();
+      lcd.setCursor(1,0);
+      lcd.print("TOTAL=");
+      lcd.print("R$");
+      lcd.print(moeda);
+      lcd.print(",00");
+      delay(3000);
+      key_init();
+}
+void senha(){
+  code_entry_init();                             //Então espera que seja inserida uma senha
+      int entrada = 0;                               //define a variavel entrada como padrão 0
+      while (count < 6 ){                            //Conta 6 entradas/teclas
+        char key = keypad.getKey();                  //Obtém tecla pressionada
+        
+        if (key != NO_KEY){
+         
+          stringOne += key;
+          lcd.setCursor(5, 1);
+          lcd.print(stringOne);                      //Se foi pressionada uma tecla:
+          entrada += 1;                              //Faz entrada = entrada + 1
+          tone(audioPin, 580, 100);                  //Para cada dígito emite um som de indicação
+          delay(duration);                           //Duração do som
+          noTone(audioPin);                          //Para de emitir som
+          if (key == pass[count])count += 1;         //Se a tecla pressionada corresponde ao dígito 
+                                                     //da senha correspondente, soma 1 no contador
+          if ( count == 6 ) unlocked();              //Se contador chegou a 4 e com dígitos corretos,  
+                                                     //desbloqueia siatema
+          if ((key == '#') || (entrada == 6)){        //Se foi pressionada a tecla "#' ou foram feitas
+                                                      //6 entradas,
+             key_init();                              //Inicializa o sistema
+            break;                                    //Para o sistema e espera por uma tecla
+          }
+        }
+      }
+    }
+void adicionar(){
+      entrada_da_soma();                       
+      int entradas = 0;
+          while (count < 15 ){         
+      char key = keypad.getKey();                  //Obtém tecla pressionada
+          if (key != NO_KEY){  
+      soma += key;
+      lcd.clear();
+      lcd.setCursor(0,0);
+      lcd.print("VALOR PARA SOMAR");
+      lcd.setCursor(5,1);
+      lcd.print("R$");
+      lcd.print(soma);
+      lcd.print(",00");                         
+      entradas += 1;                             //Faz entrada = entrada + 1
+      tone(audioPin, 580, 100);                  //Para cada dígito emite um som de indicação
+      delay(duration);                           //Duração do som
+      noTone(audioPin);  
+      if (key == '#' ){
+        soma = "";                        
+      }
+          if (key == '+' ) {
+            somar();
+            break;    
+        }
+      
+    }
+  }
+}
+void somar(){
+  moeda = atoi( soma.c_str() ) + moeda;
+  lcd.clear();
+  lcd.setCursor(1,0);
+  lcd.print("TOTAL=");
+  lcd.print("R$");
+  lcd.print(moeda);
+  soma = "";
+  saveValues();
+  lcd.print(",00");
+  delay(2000);
+  key_init ();
 }
